@@ -1,3 +1,22 @@
+/*重新定义svg类名或者内容都可以*/
+.icon-star-empty:before {
+    content: "\e9d8";
+}
+.clearfix:after{
+    display: block;
+    clear: both;
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    content: ".";
+}
+.clearfix{
+    zoom: 1;
+}
+body,html{
+    font: 14px "Microsoft YaHei UI", Helvetica, Arial, sans-serif;overflow-x: hidden;box-sizing: border-box;width: 100%;
+}
+/*common css end*/
 .content-box{
     width: 95%;
     border: 1px solid #E9E9E9;

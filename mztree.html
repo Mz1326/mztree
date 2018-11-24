@@ -3,46 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <title>基于jquery的树形图插件</title>
-    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <link rel="stylesheet" href="font/icomoon/style.css">
     <link rel="stylesheet" href="css/base.css">
 </head>
 <body>
+<h1>测试使用字体svg图片</h1>
+<ul>
+    <li><span class="icon-star-empty"></span></li>
+    <li><span class="icon-baffled"></span></li>
+</ul>
 
-<div class="container kccontent kcitem data" style="padding: 25px 0;">
+<div class="container kccontent kcitem data" style="padding: 25px 0; display: block;">
     <div class="content-box">
         <div class="content-box-header">
-            <h3></h3>
+            <h3>智能硬件高阶教程</h3>
         </div>
         <div class="content-box-mid">
             <div class="content-box-mid-left">
                 <ul id="datastructure">
-
+                    <li data-fileid="187" data-depth="0" data-islesson="1" data-style="undefined" class="rotate"><i
+                            class="showStructure"></i><s class="layui-icon layui-icon-picture-fine"></s><span
+                            class="folderName">第一课时</span>
+                        <ul>
+                            <li data-fileid="187" data-depth="1" data-islesson="1" data-style="60" class="rotate"><i
+                                    class="showStructure"></i><s class="layui-icon layui-icon-picture-fine"></s><span
+                                    class="folderName">图片</span>
+                                <ul></ul>
+                            </li>
+                            <li data-fileid="187" data-depth="1" data-islesson="1" data-style="61" class="rotate"><i
+                                    class="showStructure"></i><s class="layui-icon layui-icon-video"></s><span
+                                    class="folderName">音视频</span>
+                                <ul></ul>
+                            </li>
+                            <li data-fileid="187" data-depth="1" data-islesson="1" data-style="67" class="rotate"><i
+                                    class="showStructure"></i><s class="layui-icon layui-icon-file"></s><span
+                                    class="folderName">文档</span>
+                                <ul></ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li data-fileid="188" data-depth="0" data-islesson="1" data-style="undefined" class="rotate"><i
+                            class="showStructure"></i><s class="layui-icon layui-icon-picture-fine"></s><span
+                            class="folderName">第二课时</span>
+                        <ul>
+                            <li data-fileid="188" data-depth="1" data-islesson="1" data-style="60" class="rotate"><i
+                                    class="showStructure"></i><s class="layui-icon layui-icon-picture-fine"></s><span
+                                    class="folderName">图片</span>
+                                <ul></ul>
+                            </li>
+                            <li data-fileid="188" data-depth="1" data-islesson="1" data-style="61" class="rotate"><i
+                                    class="showStructure"></i><s class="layui-icon layui-icon-video"></s><span
+                                    class="folderName">音视频</span>
+                                <ul></ul>
+                            </li>
+                            <li data-fileid="188" data-depth="1" data-islesson="1" data-style="67" class="rotate"><i
+                                    class="showStructure"></i><s class="layui-icon layui-icon-file"></s><span
+                                    class="folderName">文档</span>
+                                <ul></ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li data-fileid="189" data-depth="0" data-islesson="1" data-style="undefined" class="rotate"><i
+                            class="showStructure"></i><s class="layui-icon layui-icon-picture-fine"></s><span
+                            class="folderName">第三课时</span>
+                        <ul>
+                            <li data-fileid="189" data-depth="1" data-islesson="1" data-style="60" class="rotate"><i
+                                    class="showStructure"></i><s class="layui-icon layui-icon-picture-fine"></s><span
+                                    class="folderName">图片</span>
+                                <ul></ul>
+                            </li>
+                            <li data-fileid="189" data-depth="1" data-islesson="1" data-style="61"><i
+                                    class="showStructure"></i><s class="layui-icon layui-icon-video"></s><span
+                                    class="folderName">音视频</span></li>
+                            <li data-fileid="189" data-depth="1" data-islesson="1" data-style="67"><i
+                                    class="showStructure"></i><s class="layui-icon layui-icon-file"></s><span
+                                    class="folderName">文档</span></li>
+                        </ul>
+                    </li>
+                    <li data-fileid="190" data-depth="0" data-islesson="1" data-style="undefined"><i
+                            class="showStructure"></i><s class="layui-icon layui-icon-picture-fine"></s><span
+                            class="folderName">第四课时</span></li>
                 </ul>
             </div>
             <div class="content-box-mid-right">
-                <div class="right-top">
+                <div class="right-top clearfix">
                     <div class="clearfix">
                         <a href="javascript:;" class="new-build">新建文件夹</a>
                         <a href="javascript:;" class="uploading">上传文件<input type="file" id="upkcdata" name="upkcdata"></a>
                     </div>
-                    <div class="data-ts clearfix">
+                    <div class="data-ts clearfix" style="display: none;">
                         <span class="fr">大小</span>
                         <span class="fr" style="margin-right: 86px">更新时间</span>
                     </div>
                 </div>
                 <div class="right-list">
                     <div id="manangeNav">
-                        <span class="breaditem">课程桌面 <em>>></em></span>
+                        <span class="breaditem">课程桌面 <em>&gt;&gt;</em></span>
                     </div>
-                    <ul id="datalist">
-                    </ul>
+                    <ul id="datalist" class=""><li data-fileid="187" data-depth="0" data-style="undefined" data-islesson="1" class="folder">
+                        <div class="right-list-item clearfix">
+                            <div class="img-box">
+                                <img src="images/files4.png" alt="">
+                            </div>
+                            <p class="img-title">第一课时</p>
+                            <div class="only-listv" style="margin-right: 268px;">
+                                <i class="layui-icon layui-icon-more more">
+                                            <span class="down">
+                                               <a class="rename">重命名</a>                                            </span>
+                                </i>
+                            </div></div></li><li data-fileid="188" data-depth="0" data-style="undefined" data-islesson="1" class="folder">
+                        <div class="right-list-item clearfix">
+                            <div class="img-box">
+                                <img src="images/files4.png" alt="">
+                            </div>
+                            <p class="img-title">第二课时</p>
+                            <div class="only-listv" style="margin-right: 268px;">
+                                <i class="layui-icon layui-icon-more more">
+                                            <span class="down">
+                                               <a class="rename">重命名</a>                                            </span>
+                                </i>
+                            </div></div></li><li data-fileid="189" data-depth="0" data-style="undefined" data-islesson="1" class="folder">
+                        <div class="right-list-item clearfix">
+                            <div class="img-box">
+                                <img src="images/files4.png" alt="">
+                            </div>
+                            <p class="img-title">第三课时</p>
+                            <div class="only-listv" style="margin-right: 268px;">
+                                <i class="layui-icon layui-icon-more more">
+                                            <span class="down">
+                                               <a class="rename">重命名</a>                                            </span>
+                                </i>
+                            </div></div></li><li data-fileid="190" data-depth="0" data-style="undefined" data-islesson="1" class="folder">
+                        <div class="right-list-item clearfix">
+                            <div class="img-box">
+                                <img src="images/files4.png" alt="">
+                            </div>
+                            <p class="img-title">第四课时</p>
+                            <div class="only-listv" style="margin-right: 268px;">
+                                <i class="layui-icon layui-icon-more more">
+                                            <span class="down">
+                                               <a class="rename">重命名</a>                                            </span>
+                                </i>
+                            </div></div></li></ul>
                 </div>
             </div>
         </div>
         <div class="content-box-btm">
             <p class="do">
                 <span style="margin-right: 22px"><input type="checkbox" id="chooseAll" name="chooseAll">全选</span>
-                <span style="color: #F26D4A;cursor: pointer" id="deletezj"><i class="layui-icon">&#xe640;</i>删除</span>
+                <span style="color: #F26D4A;cursor: pointer" id="deletezj"><i class="layui-icon"></i>删除</span>
                 <em id="changeView"><i class="layui-icon layui-icon-spread-left"></i> 切换视图</em>
             </p>
         </div>
@@ -161,7 +271,7 @@
                         cstr = '<li data-fileId='+ cata[i].id +' data-depth= '+ cata[i].depth +' data-style='+ cata[i].style +' data-islesson='+ cata[i].islesson +'  class="folder">\n' +
                             '                                <div class="right-list-item clearfix">\n' +
                             '                                    <div class="img-box">\n' +
-                            '                                        <img src="/images/files4.png" alt="">\n' +
+                            '                                        <img src="images/files4.png" alt="">\n' +
                             '                                    </div>\n' +
                             '                                    <p class="img-title">'+$.trim(cata[i].name)+'</p>\n' +
                             '                                </div>\n' +
@@ -170,7 +280,7 @@
                         cstr = '<li data-fileId='+ cata[i].id +' data-depth= '+ cata[i].depth +' data-style='+ cata[i].style +' data-islesson='+ cata[i].islesson +'  class="folder">\n' +
                             '                                <div class="right-list-item clearfix">\n' +
                             '                                    <div class="img-box">\n' +
-                            '                                        <img src="/images/files4.png" alt="">\n' +
+                            '                                        <img src="images/files4.png" alt="">\n' +
                             '                                    </div>\n' +
                             '                                    <p class="img-title">'+$.trim(cata[i].name)+'</p>\n' +
                             ' <div class="only-listv" style="margin-right: 268px;">\n' +
