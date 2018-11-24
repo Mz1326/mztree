@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>基于jquery的树形图插件</title>
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <link rel="stylesheet" href="css/base.css">
+</head>
+<body>
+
+<div class="container kccontent kcitem data" style="padding: 25px 0;">
+    <div class="content-box">
+        <div class="content-box-header">
+            <h3></h3>
+        </div>
+        <div class="content-box-mid">
+            <div class="content-box-mid-left">
+                <ul id="datastructure">
+
+                </ul>
+            </div>
+            <div class="content-box-mid-right">
+                <div class="right-top">
+                    <div class="clearfix">
+                        <a href="javascript:;" class="new-build">新建文件夹</a>
+                        <a href="javascript:;" class="uploading">上传文件<input type="file" id="upkcdata" name="upkcdata"></a>
+                    </div>
+                    <div class="data-ts clearfix">
+                        <span class="fr">大小</span>
+                        <span class="fr" style="margin-right: 86px">更新时间</span>
+                    </div>
+                </div>
+                <div class="right-list">
+                    <div id="manangeNav">
+                        <span class="breaditem">课程桌面 <em>>></em></span>
+                    </div>
+                    <ul id="datalist">
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="content-box-btm">
+            <p class="do">
+                <span style="margin-right: 22px"><input type="checkbox" id="chooseAll" name="chooseAll">全选</span>
+                <span style="color: #F26D4A;cursor: pointer" id="deletezj"><i class="layui-icon">&#xe640;</i>删除</span>
+                <em id="changeView"><i class="layui-icon layui-icon-spread-left"></i> 切换视图</em>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        //设定全局变量
+        let kcId = '<%- kcId %>';
+        let GLOBAL_floderId = 0;
+        let GLOBAL_depth = 0;
+        let GLOABL_rootksId = 0;        //最外层课时id
+        let GLOBAL_islesson = '1';      //用来判断该文件夹是否可以删除
+        let GLOBAL_style = 'undefined'; //只加载这样式下的数据
+        //显示菜单层级
+        let depth = '0';
+        let pid = '0';
+        let $datastructure = $('#datastructure');
+        let $datalist = $('#datalist');
+        let $manangeNav = $('#manangeNav');
+        let firstBread = '<span class="breaditem">课程桌面 <em>>></em></span>';
+        //封装获取树状列表函数+右侧显示函数
+        function gettreelist(depth,pid,islesson,obj){
+            islesson = islesson || '0';
+            var index = layer.load(0,{time:5*1000});
+            $.post('/ns/d/getrankdata?id=<%= kcId %>',{depth:depth,pid:pid,islesson:islesson},results => {
+                let treelist = results.msg.treelist,ali = [],strli;
+                let len = treelist.length;
+                let style = 'layui-icon-picture-fine';
+                for(let i=0;i<len;i++){
+                    if(treelist[i].islesson == '1'){
+                        if(treelist[i].style == '61'){
+                            style = 'layui-icon-video';
+                        }else if(treelist[i].style == '67'){
+                            style = 'layui-icon-file';
+                        }
+                        strli = '<li data-fileid='+ treelist[i].id +' data-depth='+ treelist[i].depth +' data-islesson='+ treelist[i].islesson +' data-style='+ treelist[i].style +'><i class="showStructure"></i><s class="layui-icon '+ style +'"></s><span class="folderName">'+ treelist[i].name +'</span></li>'
+                    }else {
+                        strli = '<li data-fileid='+ treelist[i].id +' data-depth='+ treelist[i].depth +' data-islesson='+ treelist[i].islesson +' data-style='+ treelist[i].style +'><i class="showStructure"></i><s class="layui-icon layui-icon-read"></s><span class="folderName">'+ treelist[i].name +'</span><em class="layui-icon layui-icon-delete deleteFolder"></em></li>'
+                    }
+                    ali.push(strli);
+                }
+                if(obj){
+                    obj.children('ul').empty().append(ali);
+                }else {
+                    $('#datastructure').append(ali);
+                }
+                layer.close(index);
+            })
+        }
+        function showFile(depth,pid,islesson,style){
+            islesson = islesson || '0';
+            let sendJson;
+            var index=layer.load(0,{time:5*1000});
+            (style&&style!=='undefined')?sendJson = {depth:depth,pid:pid,islesson:islesson,style:style}:sendJson = {depth:depth,pid:pid,islesson:islesson};
+            $.post('/ns/d/getshowdata?id=<%= kcId %>',sendJson, result => {
+                let coursedata = result.msg.coursedata;
+                let cata = result.msg.cata;
+                let aStr=[],acStr=[],str,cstr,len=coursedata.length,clen=cata.length,type = '/images/files1.png',itype='<input type="checkbox">',rename;
+                //将右侧数据替换掉
+                for(let i=0;i<len;i++){
+                    let _type = coursedata[i].type;
+                    let _itype = coursedata[i].itype;
+                    if(_itype === '68'){
+                        itype='<input type="checkbox">\n';
+                        rename='<a class="rename">重命名</a>\n';
+                    }else {
+                        itype='';
+                        rename='';
+                    }
+                    if(_type == '60'){
+                        str = '<li data-fileId='+ coursedata[i].id +' data-itype='+ coursedata[i].itype +' data-type='+ coursedata[i].type +' class="notfolder">\n' +
+                            '                                <div class="right-list-item clearfix">\n' +
+                            '                                    <div class="img-box">\n' +
+                            '                                        <img src='+ encodeURI(coursedata[i].conurl) +' alt="">\n' +
+                            '                                        <input type="checkbox">\n' +
+                            '                                    </div>\n' +
+                            '                                    <p class="img-title"><a href='+ encodeURI(coursedata[i].conurl) +' class="link-a" download="" target="_blank"></a>'+$.trim(coursedata[i].name)+'</p>' +
+                            ' <div class="only-listv">\n' +
+                            '                                        <i class="layui-icon layui-icon-more more">\n' +
+                            '                                            <span class="down">\n' +
+                            '                                                <a  target="_blank" href='+ encodeURI(coursedata[i].conurl) +'>下载</a>'+ rename +
+                            '                                            </span>\n' +
+                            '                                        </i>\n' +
+                            '                                        <span>'+ coursedata[i].udate +'</span>\n' +
+                            '                                        <em>'+ coursedata[i].size +'KB</em>\n' +
+                            '                                    </div>'
+                        '                                </div>\n' +
+                        '                            </li>';
+                    }else {
+                        (_type == '67')?type='/images/files2.png':type='/images/files1.png';
+                        str = '<li data-fileId='+ coursedata[i].id +' data-itype='+ coursedata[i].itype +' data-type='+ coursedata[i].type +' class="notfolder">\n' +
+                            '                                <div class="right-list-item clearfix">\n' +
+                            '                                    <div class="img-box">\n' +
+                            '                                        <img src='+ type +' alt="">\n' +
+                            '                                        <input type="checkbox">\n' +
+                            '                                    </div>\n' +
+                            '                                    <p class="img-title"><a href='+ encodeURI(coursedata[i].conurl) +' class="link-a" download="" target="_blank"></a>'+$.trim(coursedata[i].name)+'</p>\n' +
+                            ' <div class="only-listv">\n' +
+                            '                                        <i class="layui-icon layui-icon-more more">\n' +
+                            '                                            <span class="down">\n' +
+                            '                                                <a target="_blank" href='+ encodeURI(coursedata[i].conurl) +'>下载</a>'+rename+
+                            '                                            </span>\n' +
+                            '                                        </i>\n' +
+                            '                                        <span>'+ coursedata[i].udate +'</span>\n' +
+                            '                                        <em>'+ coursedata[i].size +'KB</em>\n' +
+                            '                                    </div>'
+                        '                                </div>\n' +
+                        '                            </li>';
+                    }
+                    aStr.push(str);
+                }
+                for(let i=0;i<clen;i++){
+                    if(cata[i].style){
+                        cstr = '<li data-fileId='+ cata[i].id +' data-depth= '+ cata[i].depth +' data-style='+ cata[i].style +' data-islesson='+ cata[i].islesson +'  class="folder">\n' +
+                            '                                <div class="right-list-item clearfix">\n' +
+                            '                                    <div class="img-box">\n' +
+                            '                                        <img src="/images/files4.png" alt="">\n' +
+                            '                                    </div>\n' +
+                            '                                    <p class="img-title">'+$.trim(cata[i].name)+'</p>\n' +
+                            '                                </div>\n' +
+                            '                            </li>';
+                    }else {
+                        cstr = '<li data-fileId='+ cata[i].id +' data-depth= '+ cata[i].depth +' data-style='+ cata[i].style +' data-islesson='+ cata[i].islesson +'  class="folder">\n' +
+                            '                                <div class="right-list-item clearfix">\n' +
+                            '                                    <div class="img-box">\n' +
+                            '                                        <img src="/images/files4.png" alt="">\n' +
+                            '                                    </div>\n' +
+                            '                                    <p class="img-title">'+$.trim(cata[i].name)+'</p>\n' +
+                            ' <div class="only-listv" style="margin-right: 268px;">\n' +
+                            '                                        <i class="layui-icon layui-icon-more more">\n' +
+                            '                                            <span class="down">\n' +
+                            '                                               <a class="rename">重命名</a>' +
+                            '                                            </span>\n' +
+                            '                                        </i>\n' +
+                            '                                    </div>'
+                        '                                </div>\n' +
+                        '                            </li>';
+                    }
+                    acStr.push(cstr);
+                }
+                $('#datalist').empty().append(aStr).prepend(acStr);
+                layer.close(index);
+            })
+        }
+        //当切换到该tab时显示一级树菜单+显示所有的右侧文件夹
+        $('#documentation').one('click',function () {
+            gettreelist(depth,pid)
+            showFile(depth,pid)
+        })
+
+        //点击左侧加载二级树菜单+实时更改全局文件（夹）id和切换是否是新建文件夹+切换对应的右侧文件+切换面包屑导航+取消全选
+        $datastructure.on('click','.folderName',function (e) {
+            if(e){
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            else{
+                window.event.returnValue = false;
+                window.event.cancelBubble = true;
+            }
+            let $li = $(this).parent('li');
+            let strul = '<ul></ul>';
+            depth = parseInt($li.data('depth'),10)+1;
+            pid = $li.data('fileid');
+            GLOBAL_floderId = pid;               //更改全局文件夹ID
+            $('.right-top a:last-child').show(); //显示上传文件按钮
+            GLOBAL_depth = depth;                //更新全局文件深度
+
+            $li.data('islesson')? GLOBAL_islesson="1":GLOBAL_islesson="0";
+
+            if($li.children('ul').length === 0){
+                $li.append(strul);
+                let islesson = $li.data('islesson');
+                gettreelist(depth,pid,islesson,$li)
+            }
+            $datastructure.find('li').removeClass('thisFolder');
+            $li.addClass('rotate thisFolder');
+            $li.parents('li').addClass('thisFolder');
+            GLOBAL_style = $li.data('style');
+            showFile(depth,pid,GLOBAL_islesson,GLOBAL_style)
+
+            //切换面包屑
+            let bread = '<span class="breaditem" data-fileid='+ GLOBAL_floderId +' data-depth='+ GLOBAL_depth +' data-style='+ GLOBAL_style +' data-islesson='+ GLOBAL_islesson +' >'+ $(this).text() +'<em>>></em></span>';
+            let breadname = [bread];
+            for(let i=0;i<$li.parents('li').length;i++){
+                bread = '<span class="breaditem" data-fileid='+ $li.parents('li').eq(i).data("fileid") +' data-depth='+ (parseInt($li.parents('li').eq(i).data("depth"))+1) +' data-style='+ GLOBAL_style +' data-islesson='+ $li.parents('li').eq(i).data("islesson") +'>'+ $li.parents('li').eq(i).children('.folderName').text() +'<em>>></em></span>';
+                breadname.unshift(bread)
+            }
+            $manangeNav.empty().prepend(firstBread).append(breadname);
+
+            //取消全选
+            $('#chooseAll').prop('checked',false);
+        })
+
+        //点击展开树形结构但不改变右边显示
+        $datastructure.on('click','.showStructure',function (e) {
+            if(e){
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            else{
+                window.event.returnValue = false;
+                window.event.cancelBubble = true;
+            }
+            let $li = $(this).parent('li');
+            let strul = '<ul></ul>';
+            depth = parseInt($li.data('depth'),10)+1;
+            pid = $li.data('fileid');
+
+            if($li.children('ul').length === 0){
+                $li.append(strul);
+                let islesson = $li.data('islesson');
+                gettreelist(depth,pid,islesson,$li)
+            }
+            $li.toggleClass('rotate');
+        })
+
+        //点击右侧文件夹加载数据+切换面包屑
+        $datalist.on('click','li.folder .img-box,li.folder .img-title',function (e) {
+            e?e.stopPropagation():window.event.cancelBubble = true;
+            let $li = $(this).parents('li');
+            let depth = parseInt($li.data('depth'),10)+1;
+            let fileid = $li.data('fileid');
+
+            GLOBAL_floderId = fileid;            //更改全局文件夹ID
+            $('.right-top a:last-child').show(); //显示上传文件按钮
+            GLOBAL_depth = depth;                //更新全局文件深度
+
+            $li.data('islesson')? GLOBAL_islesson="1":GLOBAL_islesson="0";
+
+            let style = $li.data('style');
+            if(style && style != 'undefined'){
+                showFile(depth,fileid,GLOBAL_islesson,style);
+                GLOBAL_style = style;
+            }else {
+                showFile(depth,fileid,GLOBAL_islesson);
+                GLOBAL_style = 'undefined';
+            }
+
+            //切换面包屑
+            let bread = '<span class="breaditem" data-fileid='+ GLOBAL_floderId +' data-depth='+ GLOBAL_depth +' data-style='+ GLOBAL_style +' data-islesson='+ $li.data("islesson") +'>'+ $li.find('.img-title').text() +'<em>>></em></span>';
+            $manangeNav.append(bread);
+
+            //取消全选
+            $('#chooseAll').prop('checked',false);
+
+        })
+        //点击右侧文件预览
+        $datalist.on('click','li.notfolder .img-box img',function (e) {
+            if(e){
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            else{
+                window.event.returnValue = false;
+                window.event.cancelBubble = true;
+            }
+            let $thisLi = $(this).parents('li');
+            let title = $thisLi.find('.img-title').text();
+            let _type = $thisLi.data('type');
+            let content;
+            if(_type === 60 ){
+                let url = $thisLi.find('.img-box').children('img').attr('src');
+                content = '<img src='+url+'>'
+            }
+            if(_type === 61){
+                let url = $thisLi.find('.down').children('a').eq(0).attr('href');
+                content = '<video controls="" autoplay="" name="media" width="100%" ><source src='+ url +' type="video/mp4"></video>'
+            }
+            if(_type === 66){
+                let url = $thisLi.find('.down').children('a').eq(0).attr('href');
+                content = '<audio controls="controls" name="media"  width="100%" ><source src='+ url +' type="audio/mpeg" ></audio>'
+            }
+            if(_type === 67){
+                content = '<h3>抱歉，该文档无法预览，请下载后查看</h3>'
+            }
+            layer.open({
+                id:'showdataimg',
+                title:title,
+                area: ['1000px', '700px'],
+                content: content,
+                btn: '确认',
+                yes:function(index){
+                    layer.close(index);
+                }
+            });
+        })
+
+        //点击全选
+        let  $adatali =  $datalist.children('li');
+        $('#chooseAll').on('click',function () {
+            if($(this).prop("checked")){
+                $('#datalist').children('li').find('input[type="checkbox"]').prop("checked", this.checked);
+            }else {
+                $('#datalist').children('li').find('input[type="checkbox"]').prop("checked", false);
+            }
+        })
+
+        //删除文件夹
+        $datastructure.on('click','.deleteFolder',function (e){
+            let _this = this;
+            var conf=layer.confirm('删除后无法撤回！', {icon: 7, title:'提示'}, function(index){
+                //do something
+                if(e){
+                    e.stopPropagation();
+                    e.preventDefault();
+                }
+                else{
+                    window.event.returnValue = false;
+                    window.event.cancelBubble = true;
+                }
+                let _id = $(_this).parent('li').data('fileid');
+                let jfileid = {f1:_id};
+                var _index = layer.load(0,{time:5*1000});
+                $.post('/ns/d/deletefile?id=<%= kcId %>',{jfileid},result => {
+                    // layer.close(index);
+                    if(result.code == '200'){
+                        $('#datastructure').empty();
+                        gettreelist('0','0'); //怎么刷新单个li的数据，而不是将整个树结构都刷新
+                        showFile(GLOBAL_depth,GLOBAL_floderId,GLOBAL_islesson,GLOBAL_style);
+                        layer.close(conf);
+                    }else{
+                        layer.msg('删除失败'+result.msg)
+                    }
+                })
+            });
+
+        })
+        //删除右侧文件（选中项）
+        $('#deletezj').on('click',function () {
+            let _this = this;
+            layer.confirm('删除后无法撤回！', {icon: 7, title:'提示'}, function(index){
+                //do something
+                let $adatali =  $('#datalist').children('li');
+                let jfileid = {};
+                for(let i=0;i<$adatali.length;i++){
+                    if($adatali.eq(i).find('input[type="checkbox"]').prop("checked")){
+                        jfileid['f'+$adatali.eq(i).data('fileid')]  =$adatali.eq(i).data('fileid');
+                    }
+                }
+                if($.isEmptyObject(jfileid)){
+                    layer.msg('未选择文件！',{anim:6,icon:2})
+                }else {
+                    var index = layer.load(0,{time:5*1000});
+                    $.post('/ns/d/deletefile?id=<%= kcId %>',{jfileid},result => {
+                        layer.close(index);
+                        (result.code == '200')?showFile(GLOBAL_depth,GLOBAL_floderId,GLOBAL_islesson,GLOBAL_style):layer.msg('删除失败'+result.msg);
+                        //取消全选
+                        $('#chooseAll').prop('checked',false);
+                    })
+                }
+                layer.closeAll();
+            });
+        })
+
+        //新建文件夹弹框
+        $('.new-build').click(function () {
+            layer.open({
+                type: 1,
+                title: ['新建文件夹', 'font-size: 14px;color: #606060;'],
+                skin: 'demo-class', //加上边框
+                area: ['520px', '320px']//宽高
+                ,btn: ['确定','取消']
+                ,yes: function(index, layero){
+                    //按钮【按钮一】的回调
+                    let flagStyle = $manangeNav.children('.breaditem').eq(2).data('style');
+                    if(flagStyle != 'undefined' && flagStyle){layer.msg('当前目录下禁止创建文件夹',{icon:2});return;}
+                    let zlName = $('.zlName').val();
+                    let dataJson;
+                    dataJson = {zlName,pid:GLOBAL_floderId,depth:GLOBAL_depth}
+                    let flag = $manangeNav.children('.breaditem').eq(1).data('islesson');
+
+                    GLOABL_rootksId = $manangeNav.children('.breaditem').eq(1).data('fileid');
+                    flag?dataJson = {zlName,pid:GLOBAL_floderId,depth:GLOBAL_depth,lessonid:GLOABL_rootksId}:dataJson;
+
+                    if(zlName){
+                        var index = layer.load(0,{time:5*1000});
+                        $.post('/ns/d/addfile?id=<%= kcId %>',dataJson,function (result) {
+                            layer.close(index);
+                            if(result.code != 200){
+                                layer.msg('创建失败'+result.msg, {icon: 7,time:1000});
+                            }else {
+                                layer.msg('新建成功', {icon: 6,time:1000});
+                                $('#datastructure').empty();
+                                gettreelist('0','0'); //怎么刷新单个li的数据，而不是将整个树结构都刷新
+                                showFile(depth,pid,GLOBAL_islesson,GLOBAL_style)
+                                layer.closeAll();
+                            }
+                        })
+                    }else{
+                        layer.msg('数据填写不正确', {icon: 2,time:2000});
+                    }
+                }
+                ,btn2: function(index, layero){
+                    //按钮【按钮二】的回调
+                    //return false 开启该代码可禁止点击该按钮关闭
+                },
+                id:'adddata',
+                content: '<div class="add-start layui-form">\n' +
+                '    <div class="layui-form-item">\n' +
+                '        <label class="layui-form-label"><i>*</i>资料名称：</label>\n' +
+                '        <div class="layui-input-block">\n' +
+                '            <input type="text" name="title" required  lay-verify="required" value="新建文件夹" autocomplete="off" class="layui-input zlName">\n' +
+                '        </div>\n' +
+                '    </div>\n' +
+                '\n' +
+                '</div>',
+                success: function(layero, index){
+                    layui.use('form', function(){
+                        var form = layui.form;
+                        form.render();
+                        $(".zlName").bind('focus',function(e){
+                            $(this).select();
+                            return false;
+                        })
+                    });
+                }
+            });
+        })
+
+        //上传文件
+        $('#upkcdata').on('change',function () {
+            if(!this.value) return;
+            let islesson = GLOBAL_islesson;
+            let showcontent;
+            let files = this.files[0];
+            let fileReader = new FileReader();
+            let _type = files.type.split('/')[0];
+            fileReader.onload = function() {
+                if(_type === 'image'){
+                    showcontent = '<img src='+ this.result +'>';
+                }else {
+                    showcontent = '您选择的文件名称为<h2>'+files.name+'</h2>类型是'+'<h2>'+files.type+'</h2>'
+                }
+                let _open = layer.open({
+                    id:'showdataimg',
+                    title:'上传资料',
+                    area: ['1000px', '700px'],
+                    content: showcontent,
+                    btn: '确认上传',
+                    yes:function(index){
+                        //按钮【按钮一】的回调
+                        let formData = new FormData();
+                        var _index = layer.load(0);
+                        formData.append('files1',files);
+                        formData.append('islesson',islesson);
+                        formData.append('curFileId',GLOBAL_floderId);
+                        let flag = $manangeNav.children('.breaditem').eq(1).data('islesson');
+                        if(flag){
+                            GLOABL_rootksId = $manangeNav.children('.breaditem').eq(1).data('fileid');
+                            formData.append('lessonid',GLOABL_rootksId);
+                            formData.append('kcId',kcId);
+                        }
+                        $.ajax({
+                            url: "/ns/u/zluploadimg",
+                            type: "post",
+                            data:formData,
+                            timedout:0,
+                            contentType: false,
+                            processData: false,
+                            success: function(res){
+                                if(res.code == '200'){
+                                    layer.msg('上传成功')
+                                    showFile(GLOBAL_depth,GLOBAL_floderId,GLOBAL_islesson,GLOBAL_style);
+                                }else {
+                                    layer.msg('上传失败'+res.msg)
+                                }
+                                var file = document.getElementById("upkcdata");
+                                var ie = (navigator.appVersion.indexOf("MSIE")!=-1);
+                                layer.close(_index);
+                                if( ie ){
+                                    var file2= file.cloneNode(false);
+                                    file2.onchange= file.onchange;
+                                    file.parentNode.replaceChild(file2,file);
+                                }else{
+                                    $(file).val("");
+                                }
+                            },
+                            error:function(err){
+                                console.log(err);
+                            }
+                        });
+                        layer.close(_open);
+                    }
+                });
+            }
+            fileReader.readAsDataURL(this.files[0]);
+        })
+
+        //切换视图
+        let f = 0;
+        $('#changeView').on('click',function () {
+            if(!f){
+                $('.right-top').children('.data-ts').show()
+                $datalist.addClass('list-view')
+                $(this).children('i').removeClass('layui-icon-spread-left').addClass('layui-icon-app');
+                f = !0;
+            }else {
+                $('.right-top').children('.data-ts').hide()
+                $datalist.removeClass('list-view')
+                $(this).children('i').removeClass('layui-icon-app').addClass('layui-icon-spread-left');
+                f = 0;
+            }
+        });
+
+        //列表模式显示更多
+        $datalist.on('click','.more',function (e) {
+            if(e){
+                e.stopPropagation();
+            }
+            else{
+                window.event.cancelBubble = true;
+            }
+            $(this).children('.down').fadeToggle(300);
+        })
+        $datalist.on('mouseleave','.down',function () {
+            $(this).fadeOut(300);
+        })
+        //点击重命名
+        let primaryName;
+        $datalist.on('click','.only-listv .rename',function () {
+            let _this = this;
+            let fileId = $(_this).parents('li').data('fileid');
+            let _obj = $(_this).parents('li').find('.img-title');
+            primaryName = _obj.text();
+            layer.prompt({
+                formType: 3,
+                value: primaryName,
+                title: '修改名称',
+            }, function(value, index, elem){
+                $(elem).focus();
+                if(value.length == 0){
+                    layer.msg('名称不能为空',{anim:6,icon:2})
+                    _obj.text(primaryName)
+                }else if(value === primaryName){
+                    $(this).css({'border':'none','padding':'0'});
+                }else {
+                    var index = layer.load(0,{time:5*1000});
+                    let data= {fileId,title:value};
+                    $.post('/ns/d/renamezl?id=<%= kcId %>',data, results =>{
+                        if(results.code == '200'){
+                            _obj.text(value)
+                        }else {
+                            layer.msg('修改失败',{anim:6,icon:7})
+                            _obj.text(primaryName)
+                        }
+                        layer.close(index);
+                    })
+                }
+                layer.closeAll();
+            });
+        })
+        //面包屑导航
+        $manangeNav.on('click','.breaditem',function () {
+            GLOBAL_floderId = $(this).data('fileid') || 0;
+            GLOBAL_depth = $(this).data('depth') || 0;
+            let curIndex = $(this).index();
+            if(curIndex === 0){
+                $('.right-top a:last-child').hide(); //隐藏上传文件按钮
+                $manangeNav.empty().prepend(firstBread)
+                gettreelist('0','0','0',$('.content-box-mid-left'));
+                showFile('0','0');
+            }else {
+                let fileid = $(this).data('fileid');
+                let depth = $(this).data('depth');
+                let style = $(this).data('style');
+                GLOBAL_islesson=$(this).data('islesson')
+                showFile(depth,fileid,GLOBAL_islesson,style);
+                $(this).nextAll('.breaditem').remove();
+            }
+
+            //取消全选
+            $('#chooseAll').prop('checked',false);
+
+        })
+    })
+</script>
+</body>
+</html>
